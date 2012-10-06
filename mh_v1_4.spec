@@ -52,7 +52,6 @@ install -D -m 755 docs/scripts/init/matterhorn_init_d.sh \
 ln -s 	/opt/matterhorn/bin/matterhorn_init_d.sh \
 	${RPM_BUILD_ROOT}%{_initrddir}/matterhorn
 
-sed -i s/THIS_HOST/`hostname`/ etc/services/org.ops4j.pax.logging.properties
 cp -rf etc $RPM_BUILD_ROOT/%{_prefix}
 ln -s /opt/matterhorn/etc ${RPM_BUILD_ROOT}/etc/matterhorn
 
