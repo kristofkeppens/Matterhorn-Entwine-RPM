@@ -1,0 +1,88 @@
+#!/bin/bash
+
+if [ -r /usr/share/java-utils/java-functions ]; then
+  . /usr/share/java-utils/java-functions
+else
+  echo "Can't read Java functions library /usr/share/java-utils/java-functions, aborting"
+  exit 1
+fi
+
+# Make sure that required parameters are set
+if [ -z $MATTERHORN_HOME ]; then
+  echo "MATTERHORN_HOME is undefined"
+  exit 1
+elif [ -z $FELIX_FILEINSTALL_DIR ]; then
+  echo "FELIX_FILEINSTALL_DIR is undefined"
+  exit 1
+elif [ -z $MATTERHORN_CONF_DIR ]; then
+  echo "MATTERHORN_CONF_DIR is undefined"
+  exit 1
+elif [ -z $MATTERHORN_LOG_DIR ]; then
+  echo "MATTERHORN_LOG_DIR is undefined"
+  exit 1
+elif [ -z $MATTERHORN_TEMP_DIR ]; then
+  echo "MATTERHORN_TEMP_DIR is undefined"
+  exit 1
+elif [ -z $MATTERHORN_CACHE_DIR ]; then
+  echo "MATTERHORN_CACHE_DIR is undefined"
+  exit 1
+elif [ -z $MATTERHORN_PID_FILE ]; then
+  echo "MATTERHORN_PID_FILE is undefined"
+  exit 1
+elif [ -z $MATTERHORN_NODE_TYPE ]; then
+  echo "MATTERHORN_NODE_TYPE is undefined"
+  exit 1
+fi
+
+set_javacmd
+
+# CLASSPATH munging
+if [ -n "$JSSE_HOME" ]; then
+  CLASSPATH="${CLASSPATH}:$(build-classpath jcert jnet jsse 2>/dev/null)"
+fi
+CLASSPATH="${CLASSPATH}:${MATTERHORN_HOME}/bin/felix.jar"
+
+if [ "$1" = "start" ]; then
+cd $MATTERHORN_HOME
+  ${JAVACMD} \
+    $JVM_OPTS \
+    $JVM_MEMORY_OPTS \
+    $JVM_DEBUG_OPTS \
+    $JVM_AWT_OPTS \
+    $JVM_ENCODING_OPTS \
+    $JVM_MONITORING_OPTS \
+    $MATTERHORN_OPTS \
+    $MATTERHORN_APPS_OPTS \
+    -classpath "$CLASSPATH" \
+    -Dfelix.config.properties=file:"$MATTERHORN_CONF_DIR"/config.properties \
+    -Dfelix.system.properties=file:"$MATTERHORN_CONF_DIR"/profiles/"${MATTERHORN_NODE_TYPE}.properties" \
+    -Dfelix.fileinstall.dir="$FELIX_FILEINSTALL_DIR" \
+    -Dbundles.configuration.location="$MATTERHORN_CONF_DIR" \
+    -Dorg.ops4j.pax.logging.DefaultServiceLog.level=WARN \
+    -Dorg.ops4j.pax.web.config.file=$MATTERHORN_CONF_DIR/jetty.xml \
+    -Dfelix.logdir="$MATTERHORN_LOG_DIR" \
+    -Djava.io.tmpdir="$MATTERHORN_TEMP_DIR" \
+    -Dgosh.args=--nointeractive \
+    -jar $MATTERHORN_HOME/bin/felix.jar "$MATTERHORN_CACHE_DIR" \
+    2>&1 >> /dev/null &
+    if [ ! -z "$MATTERHORN_PID_FILE" ]; then
+      echo $! > "$MATTERHORN_PID_FILE"
+    fi
+elif [ "$1" = "stop" ]; then
+    if [ -z "$MATTERHORN_PID_FILE" ]; then
+      echo "MATTERHORN_PID_FILE is undefined"
+      exit 1
+    elif [ ! -f "$MATTERHORN_PID_FILE" ]; then
+      echo "$MATTERHORN_PID_FILE does not exist"
+      exit 1
+    fi    
+    read pid < "$MATTERHORN_PID_FILE"
+    if [ -z "$pid" ]; then
+      echo "Matterhorn pid file $MATTERHORN_PID_FILE is empty"
+      exit 1
+    fi
+    kill $pid
+else
+  echo "Usage: $0 {start|stop}"
+  exit 1
+fi
