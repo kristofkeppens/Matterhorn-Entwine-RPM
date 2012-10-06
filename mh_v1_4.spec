@@ -105,5 +105,6 @@ rm /etc/matterhorn
 
 
 %changelog
-
+* Sep 20 2012 Jaime Gago <jaime@entwinemedia.com>
+-Version 1
 
