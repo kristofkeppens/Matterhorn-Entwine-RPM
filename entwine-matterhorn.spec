@@ -4,13 +4,13 @@
 
 Name:		entwine-matterhorn	
 Version:	1.4
-Release:	1%{?dist}
+Release:	#We replace this with https://gist.github.com/3896119 via script (Jenkins)
 Summary:	Entwine version of Matterhorn
 #Group
 License:	ECL 2.0	
 URL:		http://entwinemedia.com	
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}
-Source:		matterhorn-1.4.tar.gz
+Source:		matterhorn.%{release}.tar.gz
 
 #BuildRequires:	
 Requires: 	java-1.6.0-openjdk	
@@ -19,7 +19,7 @@ Requires: 	java-1.6.0-openjdk
 This is entwine version of Matterhorn
 
 %prep
-%setup -n matterhorn-1.4
+%setup -n matterhorn.%{release}
 
 %build
 
